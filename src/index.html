@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SonicBurn - Windows CD Burner & Audio Studio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+</head>
+<body class="bg-dark text-light select-none">
+    <div class="app-container">
+        
+        <!-- TOP APP HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-compact-disc spin-slow"></i>
+                </div>
+                <div>
+                    <h1 class="app-title">SonicBurn</h1>
+                    <span class="app-tagline">Windows CD Master & Audio Studio</span>
+                </div>
+            </div>
+
+            <!-- MODE SWITCHER -->
+            <div class="mode-switch-container">
+                <button id="modeAudioBtn" class="mode-btn active" title="Red Book Standard Audio CD (Playable in all car stereos & home players)">
+                    <i class="fa-solid fa-music"></i> Audio CD <span class="badge-sub">80 Min</span>
+                </button>
+                <button id="modeDataBtn" class="mode-btn" title="Data / MP3 Disc (Stores MP3/WMA/FLAC files & folders, 700MB / 4.7GB)">
+                    <i class="fa-solid fa-folder-tree"></i> Data MP3 CD <span class="badge-sub">700 MB</span>
+                </button>
+            </div>
+
+            <!-- DRIVE CONTROLS -->
+            <div class="drive-header-actions">
+                <div class="drive-select-box">
+                    <i class="fa-solid fa-record-vinyl text-cyan"></i>
+                    <select id="opticalDriveSelect" class="styled-select">
+                        <option value="0">Detecting optical drives...</option>
+                    </select>
+                    <button id="refreshDrivesBtn" class="icon-btn-sm" title="Refresh Optical Drives">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+
+                <button id="openEraseModalBtn" class="btn btn-secondary-sm" title="Erase CD-RW / DVD-RW">
+                    <i class="fa-solid fa-trash-can"></i> Erase Disc
+                </button>
+                <button id="openCoverModalBtn" class="btn btn-secondary-sm" title="Generate Printable Jewel Case Booklet">
+                    <i class="fa-solid fa-print"></i> Jewel Case Booklet
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN WORKSPACE -->
+        <div class="main-body">
+            
+            <!-- LEFT SIDEBAR: SCANNER & DIRECTORIES -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="section-heading"><i class="fa-solid fa-magnifying-glass-arrow-right"></i> Quick Scan Drives</h3>
+                    <div id="storageDrivesList" class="drive-quick-list">
+                        <!-- Populated dynamically with C:, E:, etc -->
+                        <div class="loading-placeholder">Detecting drives...</div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="section-heading"><i class="fa-solid fa-folder-open"></i> Folders</h3>
+                    <div class="quick-folder-actions">
+                        <button id="scanMusicFolderBtn" class="btn-sidebar">
+                            <i class="fa-solid fa-headphones"></i> Music Library
+                        </button>
+                        <button id="scanDownloadsFolderBtn" class="btn-sidebar">
+                            <i class="fa-solid fa-download"></i> Downloads
+                        </button>
+                        <button id="scanCustomFolderBtn" class="btn-sidebar btn-highlight">
+                            <i class="fa-solid fa-folder-plus"></i> Browse Custom Folder...
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCAN STATUS CARD -->
+                <div class="sidebar-section scan-status-card" id="scanStatusCard">
+                    <div class="scan-status-header">
+                        <span id="scanStatusText"><i class="fa-solid fa-circle-check text-success"></i> Ready</span>
+                        <button id="cancelScanBtn" class="btn-cancel-scan hidden" title="Stop scan">Cancel</button>
+                    </div>
+                    <div class="scan-progress-bar-container hidden" id="scanProgressContainer">
+                        <div class="scan-progress-bar" id="scanProgressBar"></div>
+                    </div>
+                    <div class="scan-details" id="scanDetails">Found 0 songs in library</div>
+                </div>
+
+                <!-- DISC OPTIONS ACCORDION -->
+                <div class="sidebar-section disc-settings-panel">
+                    <h3 class="section-heading"><i class="fa-solid fa-sliders"></i> Disc Burn Settings</h3>
+                    
+                    <div class="setting-item">
+                        <label for="discTitleInput">Disc Title (data disc label &amp; booklet):</label>
+                        <input type="text" id="discTitleInput" class="styled-input" value="My Sonic Mix" placeholder="Disc Title">
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="discArtistInput">Performer / Artist (booklet):</label>
+                        <input type="text" id="discArtistInput" class="styled-input" value="Various Artists" placeholder="Performer">
+                    </div>
+
+                    <div class="setting-item audio-only-setting">
+                        <label for="gapControlSelect" title="Audio CDs burned track-at-once always have a 2 second gap between songs. You can add more, but gapless isn't possible in this mode.">Gap Between Songs:</label>
+                        <select id="gapControlSelect" class="styled-select">
+                            <option value="0" selected>2 seconds (standard)</option>
+                            <option value="1">3 seconds</option>
+                            <option value="2">4 seconds</option>
+                            <option value="3">5 seconds</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="speedSelect" title="Slower burns are often more reliable in older car stereos.">Burn Speed:</label>
+                        <select id="speedSelect" class="styled-select">
+                            <option value="0" selected>Maximum (drive decides)</option>
+                            <option value="4">4x (most compatible)</option>
+                            <option value="8">8x</option>
+                            <option value="16">16x</option>
+                            <option value="24">24x</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item checkbox-setting audio-only-setting">
+                        <label class="custom-checkbox-label">
+                            <input type="checkbox" id="normalizeAudioCheckbox" checked>
+                            <span class="checkbox-box"></span>
+                            <span>Even Out Volume Between Songs</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item checkbox-setting">
+                        <label class="custom-checkbox-label">
+                            <input type="checkbox" id="ejectCheckbox" checked>
+                            <span class="checkbox-box"></span>
+                            <span>Eject Disc When Finished</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item checkbox-setting">
+                        <label class="custom-checkbox-label" title="Converts the audio, builds the disc layout and checks the disc is blank and everything fits, then stops before writing. Untick to burn for real.">
+                            <input type="checkbox" id="testRunCheckbox" checked>
+                            <span class="checkbox-box"></span>
+                            <span>Test Run only (don't write to disc)</span>
+                        </label>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- RIGHT CONTENT AREA -->
+            <main class="content-area">
+                
+                <!-- TOOLBAR & SEARCH -->
+                <div class="toolbar-panel">
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search by song name, artist, album, genre, or path...">
+                        <button id="clearSearchBtn" class="clear-search-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div class="toolbar-actions">
+                        <button id="selectAllBtn" class="btn btn-subtle" title="Select All Visible Songs"><i class="fa-solid fa-check-double"></i> All</button>
+                        <button id="deselectAllBtn" class="btn btn-subtle" title="Deselect All"><i class="fa-solid fa-square-xmark"></i> None</button>
+                        <button id="autoFitBtn" class="btn btn-subtle btn-cyan" title="Smart Auto-Fit: Automatically selects songs to fill the disc to capacity without going over"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Fit</button>
+                        <div class="divider-v"></div>
+                        <button id="saveIsoBtn" class="btn btn-secondary" title="Save compilation directly as ISO disc image"><i class="fa-solid fa-file-arrow-down"></i> Save ISO</button>
+                        <button id="startBurnBtn" class="btn btn-primary" title="Burn checked tracks to physical optical disc"><i class="fa-solid fa-fire"></i> Burn Disc</button>
+                    </div>
+                </div>
+
+                <!-- CAPACITY METER BAR -->
+                <div class="capacity-panel">
+                    <div class="capacity-info">
+                        <div class="capacity-stats">
+                            <span class="capacity-title" id="capacityModeTitle">Audio CD Capacity:</span>
+                            <span class="capacity-numbers" id="capacityNumbers">0:00 / 80:00 min</span>
+                            <span class="capacity-badge" id="capacityTrackCount">(0 tracks selected)</span>
+                        </div>
+                        <div class="capacity-media-indicator" id="capacityMediaInfo">CD-R (80 min / 700 MB)</div>
+                    </div>
+                    <div class="capacity-bar-track">
+                        <div class="capacity-bar-fill" id="capacityBarFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- FILTER TABS & STATS -->
+                <div class="table-subnav">
+                    <div class="filter-pills">
+                        <button class="pill active" data-filter="all">All Songs (<span id="countAll">0</span>)</button>
+                        <button class="pill" data-filter="selected">Selected for Disc (<span id="countSelected">0</span>)</button>
+                        <button class="pill" data-filter="unselected">Unselected (<span id="countUnselected">0</span>)</button>
+                    </div>
+                    <div class="table-actions-right">
+                        <button id="clearLibraryBtn" class="btn-text-danger" title="Clear song library"><i class="fa-solid fa-trash-arrow-up"></i> Clear List</button>
+                    </div>
+                </div>
+
+                <!-- SONGS TABLE -->
+                <div class="table-container">
+                    <table class="song-table" id="songTable">
+                        <thead>
+                            <tr>
+                                <th class="col-check">
+                                    <input type="checkbox" id="headerCheckbox" title="Toggle Visible Checkboxes">
+                                </th>
+                                <th class="col-play">Play</th>
+                                <th class="col-order audio-only-col"># Order</th>
+                                <th class="col-title sortable" data-sort="title">Title <i class="fa-solid fa-sort"></i></th>
+                                <th class="col-artist sortable" data-sort="artist">Artist <i class="fa-solid fa-sort"></i></th>
+                                <th class="col-album sortable" data-sort="album">Album <i class="fa-solid fa-sort"></i></th>
+                                <th class="col-duration sortable" data-sort="duration">Duration <i class="fa-solid fa-sort"></i></th>
+                                <th class="col-bitrate">Bitrate</th>
+                                <th class="col-size sortable" data-sort="size">Size <i class="fa-solid fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="songTableBody">
+                            <tr class="empty-state-row">
+                                <td colspan="9">
+                                    <div class="empty-state">
+                                        <div class="empty-icon"><i class="fa-solid fa-compact-disc"></i></div>
+                                        <h3>No Songs in Library</h3>
+                                        <p>Click a drive on the left (e.g. <b>C:\</b>) or choose <b>Browse Custom Folder</b> to scan for MP3 files.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- BOTTOM AUDIO PLAYER BAR (TEST & PREVIEW) -->
+        <footer class="player-bar">
+            <!-- CURRENT TRACK INFO -->
+            <div class="player-track-info">
+                <div class="album-art-thumbnail" id="playerAlbumArt">
+                    <i class="fa-solid fa-music"></i>
+                </div>
+                <div class="player-text">
+                    <div class="player-title" id="playerTitle">Select a track to preview & test</div>
+                    <div class="player-artist" id="playerArtist">No track playing</div>
+                </div>
+                <div class="audio-health-badge" id="playerHealthBadge" title="Audio Bitrate & Health">
+                    <i class="fa-solid fa-circle-check"></i> <span id="playerBitrateText">Ready</span>
+                </div>
+            </div>
+
+            <!-- CONTROLS & TIMELINE -->
+            <div class="player-center">
+                <div class="player-buttons">
+                    <button id="prevTrackBtn" class="btn-player" title="Previous Track"><i class="fa-solid fa-backward-step"></i></button>
+                    <button id="playPauseBtn" class="btn-player btn-play-main" title="Play / Pause"><i class="fa-solid fa-play"></i></button>
+                    <button id="stopBtn" class="btn-player" title="Stop"><i class="fa-solid fa-stop"></i></button>
+                    <button id="nextTrackBtn" class="btn-player" title="Next Track"><i class="fa-solid fa-forward-step"></i></button>
+                    
+                    <!-- FAST CUE / TEST BUTTONS -->
+                    <div class="cue-buttons">
+                        <button id="cueIntroBtn" class="btn-cue" title="Jump to 15s (Check audio start)"><i class="fa-solid fa-forward"></i> +15s</button>
+                        <button id="cueMiddleBtn" class="btn-cue" title="Jump to 50% midpoint (Check track body quality)"><i class="fa-solid fa-bullseye"></i> 50% Cue</button>
+                    </div>
+                </div>
+
+                <div class="timeline-container">
+                    <span class="time-label" id="currentTimeLabel">0:00</span>
+                    <div class="scrub-bar-track" id="scrubBarTrack">
+                        <div class="scrub-bar-fill" id="scrubBarFill" style="width: 0%;"></div>
+                        <div class="scrub-bar-handle" id="scrubBarHandle" style="left: 0%;"></div>
+                    </div>
+                    <span class="time-label" id="totalDurationLabel">0:00</span>
+                </div>
+            </div>
+
+            <!-- VOLUME & AUDIO STATUS -->
+            <div class="player-volume">
+                <button id="muteBtn" class="btn-player-sub" title="Mute/Unmute"><i class="fa-solid fa-volume-high"></i></button>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8" class="volume-slider">
+                <div class="output-format-badge">44.1 kHz</div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- BURN PROGRESS MODAL -->
+    <div id="burnModal" class="modal-overlay hidden">
+        <div class="modal-card burn-modal-card">
+            <div class="burn-modal-header">
+                <div class="burn-icon-spinner">
+                    <i class="fa-solid fa-compact-disc spin-fast text-cyan"></i>
+                    <i class="fa-solid fa-fire laser-glow"></i>
+                </div>
+                <div>
+                    <h2 id="burnModalTitle">Burning Disc in Progress</h2>
+                    <p id="burnModalSubtitle" class="text-muted">Writing tracks to optical media...</p>
+                </div>
+            </div>
+
+            <div class="burn-status-body">
+                <div class="burn-stage-label" id="burnStageLabel">Initializing IMAPI2 Master Engine...</div>
+                <div class="burn-detail-label" id="burnDetailLabel">Preparing disc recorder</div>
+
+                <div class="burn-main-progress-container">
+                    <div class="burn-main-progress-bar" id="burnMainProgressBar" style="width: 0%;"></div>
+                </div>
+                <div class="burn-pct-text" id="burnPctText">0%</div>
+
+                <div class="burn-logs" id="burnLogs"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="closeBurnModalBtn" class="btn btn-primary hidden">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ERASE DISC MODAL -->
+    <div id="eraseModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-trash-can text-warning"></i> Erase Rewritable Disc</h2>
+                <button class="modal-close-btn" id="closeEraseModalX">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Erase a CD-RW or DVD-RW disc to blank it for new recordings.</p>
+                <div class="erase-option-group">
+                    <label class="radio-card">
+                        <input type="radio" name="eraseMode" value="quick" checked>
+                        <div>
+                            <strong>Quick Erase (Recommended)</strong>
+                            <p class="text-muted">Clears the disc table of contents in ~1-2 minutes.</p>
+                        </div>
+                    </label>
+                    <label class="radio-card">
+                        <input type="radio" name="eraseMode" value="full">
+                        <div>
+                            <strong>Full Erase</strong>
+                            <p class="text-muted">Overwrites every sector with zeroes (Takes 10-20 minutes).</p>
+                        </div>
+                    </label>
+                </div>
+                <div id="eraseStatusMsg" class="alert-box hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelEraseBtn" class="btn btn-secondary">Cancel</button>
+                <button id="confirmEraseBtn" class="btn btn-danger"><i class="fa-solid fa-eraser"></i> Start Erase</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JEWEL CASE BOOKLET GENERATOR MODAL -->
+    <div id="coverModal" class="modal-overlay hidden">
+        <div class="modal-card modal-large">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-print text-cyan"></i> CD Jewel Case Booklet & Inlay Generator</h2>
+                <button class="modal-close-btn" id="closeCoverModalX">&times;</button>
+            </div>
+            <div class="modal-body cover-generator-body">
+                <div class="cover-preview-wrapper" id="printableCoverArea">
+                    <!-- Dynamic Jewel Case Insert -->
+                    <div class="jewel-case-insert front-cover">
+                        <div class="insert-header">
+                            <div class="cover-album-art" id="coverArtBox">
+                                <i class="fa-solid fa-compact-disc"></i>
+                            </div>
+                            <div class="cover-title-block">
+                                <h2 id="coverDiscTitle">My Sonic Mix</h2>
+                                <h3 id="coverDiscArtist">Various Artists</h3>
+                                <div class="cover-meta-info" id="coverMetaInfo">Audio CD &bull; 80 Min &bull; 2026</div>
+                            </div>
+                        </div>
+                        <hr class="cover-divider">
+                        <div class="cover-tracklist" id="coverTracklistContainer">
+                            <!-- Tracklist rows -->
+                        </div>
+                        <div class="cover-footer">
+                            <span>Total Runtime: <b id="coverTotalTime">0:00</b></span>
+                            <span>SonicBurn Disc Master</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeCoverModalBtn" class="btn btn-secondary">Close</button>
+                <button id="printCoverBtn" class="btn btn-primary"><i class="fa-solid fa-print"></i> Print Jewel Case Insert</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="audio-player.js"></script>
+    <script src="cover-generator.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>
