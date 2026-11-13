@@ -2,9 +2,10 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const ffmpegPath = require('ffmpeg-static');
+const unpackedPath = (p) => (p ? p.replace(/([\\/])app\.asar([\\/])/, '$1app.asar.unpacked$2') : p);
+const ffmpegPath = unpackedPath(require('ffmpeg-static'));
 
-const SCRIPTS_DIR = path.join(__dirname, 'scripts');
+const SCRIPTS_DIR = unpackedPath(path.join(__dirname, 'scripts'));
 const CD_SECTOR_BYTES = 2352;          // one audio CD sector (1/75 s of 44.1 kHz 16-bit stereo)
 const MAX_NAME_CHARS = 64;             // Joliet limit, which most car stereos read
 

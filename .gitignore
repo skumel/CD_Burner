@@ -1,4 +1,5 @@
 node_modules/
+dist/
 *.iso
 *.log
 .DS_Store

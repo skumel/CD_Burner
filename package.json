@@ -1,10 +1,12 @@
 {
   "name": "cd_burner",
   "version": "1.0.0",
-  "description": "",
+  "description": "SonicBurn - Windows CD Burner & Audio Studio",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "build:exe": "electron-builder --win portable",
+    "build:installer": "electron-builder --win nsis",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,10 +15,34 @@
   "type": "commonjs",
   "devDependencies": {
     "electron": "^44.7.0",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "ffmpeg-static": "^5.3.0",
     "music-metadata": "^12.1.0"
   },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.3.1"
+  "build": {
+    "appId": "com.sonicburn.cdburner",
+    "productName": "SonicBurn",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*"
+    ],
+    "asarUnpack": [
+      "src/scripts/**/*",
+      "node_modules/ffmpeg-static/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "SonicBurn-Portable.exe"
+    }
   }
 }
